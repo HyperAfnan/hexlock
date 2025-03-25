@@ -1,29 +1,53 @@
 import React, { useState, useEffect } from 'react';
+import { AuthClient } from "@dfinity/auth-client";
 import { Moon, Sun, User } from 'lucide-react';
 
 const LoginScreen = () => {
    const [darkMode, setDarkMode] = useState(true);
+   const [authClient, setAuthClient] = useState(null);
 
-   // Effect to apply dark mode to the entire document
+   // Initialize AuthClient on component mount
    useEffect(() => {
-      // Apply dark mode to the document element (html tag)
+      const initializeAuthClient = async () => {
+         const client = await AuthClient.create();
+         setAuthClient(client);
+      };
+      initializeAuthClient();
+
+      // Dark mode effect
       if (darkMode) {
          document.documentElement.classList.add('dark');
-         document.body.style.backgroundColor = '#1a202c'; // dark background
+         document.body.style.backgroundColor = '#1a202c';
       } else {
          document.documentElement.classList.remove('dark');
-         document.body.style.backgroundColor = '#ffffff'; // light background
+         document.body.style.backgroundColor = '#ffffff';
       }
       
-      // Initialize on component mount
       return () => {
-         // Cleanup when component unmounts (optional)
          document.body.style.backgroundColor = '';
       };
    }, [darkMode]);
 
    const toggleTheme = () => {
       setDarkMode(!darkMode);
+   };
+
+   const handleLogin = async () => {
+      if (!authClient) return;
+
+      await authClient.login({
+         identityProvider: "https://identity.ic0.app",
+         onSuccess: () => {
+            const identity = authClient.getIdentity();
+            console.log("Logged in successfully", identity);
+            // Here you can add navigation or state update after successful login
+            // For example: navigate to dashboard, update user state, etc.
+         },
+         onError: (error) => {
+            console.error("Login failed", error);
+            // Optionally show an error message to the user
+         }
+      });
    };
 
    return (
@@ -49,11 +73,9 @@ const LoginScreen = () => {
                   {darkMode ? <Sun size={20} /> : <Moon size={20} />}
                </button>
             </div>
-
             <div className="text-sm text-gray-400 mb-6">
                Sign in to access your account
             </div>
-
             <div className="flex justify-center mb-6">
                <div className={`
             w-16 h-16 rounded-full flex items-center justify-center 
@@ -68,8 +90,8 @@ const LoginScreen = () => {
                   />
                </div>
             </div>
-
             <button
+               onClick={handleLogin}
                className={`
             w-full py-3 rounded-lg transition-colors duration-300
             ${darkMode
@@ -79,7 +101,6 @@ const LoginScreen = () => {
             >
                Login with Internet Identity
             </button>
-
             <div className="text-xs text-center text-gray-400 mt-4">
                By continuing, you agree to our Terms of Service and Privacy Policy
             </div>
@@ -89,4 +110,3 @@ const LoginScreen = () => {
 };
 
 export default LoginScreen;
-

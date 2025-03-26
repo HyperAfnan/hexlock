@@ -1,64 +1,43 @@
-import { useState, useEffect } from 'react';
-import Auth from './components/auth';
-import Dashboard from './components/dashboard';
-import { AuthClient } from "@dfinity/auth-client";
+import { useState } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Auth from "./components/auth";
+import Dashboard from "./components/dashboard";
+import Landing from "./components/landing";
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authClient, setAuthClient] = useState(null);
   const [identity, setIdentity] = useState(null);
 
-  // Initialize auth client on component mount
-  useEffect(() => {
-    const initAuth = async () => {
-      const client = await AuthClient.create();
-      setAuthClient(client);
-      
-      // Check if the user is already authenticated
-      const authenticated = await client.isAuthenticated();
-      if (authenticated) {
-        const userIdentity = client.getIdentity();
-        setIdentity(userIdentity);
-        setIsAuthenticated(true);
-      }
-    };
-
-    initAuth();
-  }, []);
-
-  const login = async () => {
-    if (!authClient) return;
-
-    await authClient.login({
-      identityProvider: "https://identity.ic0.app",
-      onSuccess: () => {
-        const userIdentity = authClient.getIdentity();
-        setIdentity(userIdentity);
-        setIsAuthenticated(true);
-      },
-      onError: (error) => {
-        console.error("Login failed", error);
-        // You could add user feedback here
-      }
-    });
+  const handleLogin = (userIdentity) => {
+    setIdentity(userIdentity);
+    setIsAuthenticated(true);
   };
 
-  const logout = async () => {
-    if (!authClient) return;
-
-    await authClient.logout();
-    setIsAuthenticated(false);
+  const handleLogout = () => {
     setIdentity(null);
+    setIsAuthenticated(false);
   };
 
   return (
-    <main>
-      {!isAuthenticated ? (
-        <Auth onLogin={login} />
-      ) : (
-        <Dashboard identity={identity} onLogout={logout} />
-      )}
-    </main>
+    <Router>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            isAuthenticated ? (
+              <Dashboard logout={handleLogout} identity={identity} />
+            ) : (
+              <Landing />
+            )
+          }
+        />
+        <Route path="/auth" element={<Auth onLogin={handleLogin} />} />
+        <Route
+          path="/dashboard"
+          element={<Dashboard logout={handleLogout} identity={identity} />}
+        />
+      </Routes>
+    </Router>
   );
 }
 

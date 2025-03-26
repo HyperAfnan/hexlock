@@ -1,9 +1,8 @@
 {
   "canisters": {
     "password_manager_backend": {
-      "candid": "src/password_manager_backend/password_manager_backend.did",
-      "package": "password_manager_backend",
-      "type": "rust"
+      "main": "src/password_manager_backend/main.mo",
+      "type": "motoko"
     },
     "password_manager_frontend": {
       "dependencies": [

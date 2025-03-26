@@ -1,19 +1,26 @@
 import React, { useState } from 'react';
-import {SocialLogo } from 'social-logos';
 import { 
   ChevronLeft,
   ChevronRight,
-  Search, 
   User,
   Menu,
-  X
+  X,
+  LogOut
 } from 'lucide-react';
+
+// Helper function to shorten principal ID
+const shortenPrincipalId = (principalId) => {
+  if (!principalId) return "";
+  return `${principalId.substring(0, 7)}...${principalId.substring(principalId.length - 7)}`;
+};
 
 // Sidebar Component
 const Sidebar = ({ currentPage, setCurrentPage, collapsed, setCollapsed, isMobileOpen, setIsMobileOpen }) => {
   const menuItems = [
     { 
-      name: 'Dashboard', 
+      id: 'dashboard',
+      name: 'Dashboard',
+      icon: <User size={20} className="text-gray-400" />
     },
   ];
 
@@ -44,7 +51,7 @@ const Sidebar = ({ currentPage, setCurrentPage, collapsed, setCollapsed, isMobil
         `}
       >
         <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          {(!collapsed || isMobileOpen) && <h1 className="text-xl font-bold">MyDashboard</h1>}
+          {(!collapsed || isMobileOpen) && <h1 className="text-xl font-bold">HexLock</h1>}
           <div className="flex">
             {isMobileOpen && (
               <button 
@@ -73,22 +80,22 @@ const Sidebar = ({ currentPage, setCurrentPage, collapsed, setCollapsed, isMobil
                     currentPage === item.id ? 'bg-gray-700' : ''
                   }`}
                 >
-                  <span className="text-gray-400">{item.icon}</span>
+                  <span>{item.icon}</span>
                   {(!collapsed || isMobileOpen) && <span className="ml-3">{item.name}</span>}
                 </button>
               </li>
             ))}
           </ul>
         </div>
-        
       </div>
     </>
   );
 };
 
 // Header Component
-const Header = ({ currentUser = "HyperAfnan", setIsMobileOpen }) => {
-  const formattedDate = "2025-03-25 17:33:03";
+const Header = ({ identity, setIsMobileOpen, onLogout }) => {
+  const principalId = identity ? identity.getPrincipal().toString() : "";
+  const shortenedId = shortenPrincipalId(principalId);
   
   return (
     <header className="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 md:px-6 sticky top-0 z-10">
@@ -100,27 +107,21 @@ const Header = ({ currentUser = "HyperAfnan", setIsMobileOpen }) => {
           <Menu size={24} />
         </button>
         
-        <div className="relative max-w-md">
-          <input
-            type="text"
-            placeholder="Search..."
-            className="w-full pl-10 pr-4 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 hidden md:block"
-          />
-          <div className="absolute left-3 top-2.5 text-gray-400 hidden md:block">
-            <Search size={18} />
-          </div>
-        </div>
       </div>
 
       <div className="flex items-center space-x-4">
-        <div className="hidden md:block text-sm text-gray-600">
-          <span>{formattedDate} UTC</span>
-        </div>
         <div className="flex items-center">
           <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-700 mr-2">
             <User size={18} />
           </div>
-          <span className="hidden md:inline text-sm font-medium">{currentUser}</span>
+          <span className="hidden md:inline text-sm font-medium cursor-default font-mono">{shortenedId}</span>
+          <button 
+            onClick={onLogout}
+            className="ml-2 p-2 rounded-md text-red-600 hover:bg-gray-100"
+            title="Logout"
+          >
+            <LogOut size={18} />
+          </button>
         </div>
       </div>
     </header>
@@ -128,11 +129,47 @@ const Header = ({ currentUser = "HyperAfnan", setIsMobileOpen }) => {
 };
 
 // Dashboard Content Component
-const DashboardContent = () => {
+const DashboardContent = ({ identity }) => {
+  // Extract principal ID from identity for display
+  const principalId = identity ? identity.getPrincipal().toString() : "";
+  
+  // Display full principal ID for reference
+  const shortenedUsername = shortenPrincipalId(principalId);
+
+  return (
+    <div className="p-4">
+      <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <h2 className="text-xl font-semibold mb-4">Welcome, {shortenedUsername}</h2>
+        <p className="text-gray-600 mb-4">
+          Your blockchain-based password manager is ready to use. All your passwords are encrypted and stored securely.
+        </p>
+        <div className="bg-gray-100 p-3 rounded-md">
+          <p className="text-sm text-gray-500 mb-1">Your Principal ID:</p>
+          <p className="text-gray-700 font-mono break-all">{principalId}</p>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold mb-3">Recent Activities</h3>
+          <div className="text-gray-500 text-sm">
+            <p>No recent activities to display</p>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold mb-3">Password Statistics</h3>
+          <div className="text-gray-500 text-sm">
+            <p>You have 0 passwords stored</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 // Main Dashboard Component that combines everything
-const Dashboard = () => {
+const Dashboard = ({ identity, onLogout }) => {
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [collapsed, setCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -141,19 +178,9 @@ const Dashboard = () => {
   const renderContent = () => {
     switch (currentPage) {
       case 'dashboard':
-        return <DashboardContent />;
-      case 'analytics':
-        return <AnalyticsContent />;
-      case 'customers':
-        return <CustomersContent />;
-      case 'products':
-        return <ProductsContent />;
-      case 'settings':
-        return <SettingsContent />;
-      case 'help':
-        return <HelpContent />;
+        return <DashboardContent identity={identity} />;
       default:
-        return <NotFoundContent />;
+        return <div className="p-4">Page not found</div>;
     }
   };
 
@@ -170,8 +197,9 @@ const Dashboard = () => {
         />
         <div className="flex-1 flex flex-col overflow-hidden w-full">
           <Header 
-            currentUser="HyperAfnan"
+            identity={identity}
             setIsMobileOpen={setIsMobileOpen}
+            onLogout={onLogout}
           />
           <main className="flex-1 overflow-x-hidden overflow-y-auto p-3 sm:p-4 md:p-6 bg-gray-50">
             {renderContent()}

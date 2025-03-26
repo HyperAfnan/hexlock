@@ -1,5 +1,0 @@
-[workspace]
-members = [
-    "src/password_manager_backend"
-]
-resolver = "2"

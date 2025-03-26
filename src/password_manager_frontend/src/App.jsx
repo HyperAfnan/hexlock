@@ -1,24 +1,63 @@
-// import { useState } from 'react';
-// import { password_manager_backend } from 'declarations/password_manager_backend';
+import { useState, useEffect } from 'react';
 import Auth from './components/auth';
 import Dashboard from './components/dashboard';
+import { AuthClient } from "@dfinity/auth-client";
 
 function App() {
-  // const [greeting, setGreeting] = useState('');
-  //
-  // function handleSubmit(event) {
-  //   event.preventDefault();
-  //   const name = event.target.elements.name.value;
-  //   password_manager_backend.greet(name).then((greeting) => {
-  //     setGreeting(greeting);
-  //   });
-  //   return false;
-  // }
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authClient, setAuthClient] = useState(null);
+  const [identity, setIdentity] = useState(null);
+
+  // Initialize auth client on component mount
+  useEffect(() => {
+    const initAuth = async () => {
+      const client = await AuthClient.create();
+      setAuthClient(client);
+      
+      // Check if the user is already authenticated
+      const authenticated = await client.isAuthenticated();
+      if (authenticated) {
+        const userIdentity = client.getIdentity();
+        setIdentity(userIdentity);
+        setIsAuthenticated(true);
+      }
+    };
+
+    initAuth();
+  }, []);
+
+  const login = async () => {
+    if (!authClient) return;
+
+    await authClient.login({
+      identityProvider: "https://identity.ic0.app",
+      onSuccess: () => {
+        const userIdentity = authClient.getIdentity();
+        setIdentity(userIdentity);
+        setIsAuthenticated(true);
+      },
+      onError: (error) => {
+        console.error("Login failed", error);
+        // You could add user feedback here
+      }
+    });
+  };
+
+  const logout = async () => {
+    if (!authClient) return;
+
+    await authClient.logout();
+    setIsAuthenticated(false);
+    setIdentity(null);
+  };
 
   return (
     <main>
-      <Auth/>
-         <Dashboard/>
+      {!isAuthenticated ? (
+        <Auth onLogin={login} />
+      ) : (
+        <Dashboard identity={identity} onLogout={logout} />
+      )}
     </main>
   );
 }

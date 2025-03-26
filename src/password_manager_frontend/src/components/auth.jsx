@@ -1,20 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { AuthClient } from "@dfinity/auth-client";
 import { Moon, Sun, User } from 'lucide-react';
 
-const LoginScreen = () => {
+const Auth = ({ onLogin }) => {
    const [darkMode, setDarkMode] = useState(true);
-   const [authClient, setAuthClient] = useState(null);
 
-   // Initialize AuthClient on component mount
+   // Dark mode effect
    useEffect(() => {
-      const initializeAuthClient = async () => {
-         const client = await AuthClient.create();
-         setAuthClient(client);
-      };
-      initializeAuthClient();
-
-      // Dark mode effect
       if (darkMode) {
          document.documentElement.classList.add('dark');
          document.body.style.backgroundColor = '#1a202c';
@@ -32,35 +23,17 @@ const LoginScreen = () => {
       setDarkMode(!darkMode);
    };
 
-   const handleLogin = async () => {
-      if (!authClient) return;
-
-      await authClient.login({
-         identityProvider: "https://identity.ic0.app",
-         onSuccess: () => {
-            const identity = authClient.getIdentity();
-            console.log("Logged in successfully", identity);
-            // Here you can add navigation or state update after successful login
-            // For example: navigate to dashboard, update user state, etc.
-         },
-         onError: (error) => {
-            console.error("Login failed", error);
-            // Optionally show an error message to the user
-         }
-      });
-   };
-
    return (
       <div className={`min-h-screen flex items-center justify-center transition-colors duration-300 ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
          <div className={`
          w-96 max-w-md p-6 rounded-lg shadow-xl 
          ${darkMode
-                ? 'bg-gray-800 text-white'
-                : 'bg-white text-gray-800 border border-gray-200'
-             }`}
+               ? 'bg-gray-800 text-white'
+               : 'bg-white text-gray-800 border border-gray-200'
+            }`}
          >
             <div className="flex justify-between items-center mb-6">
-               <h2 className="text-2xl font-semibold">Welcome</h2>
+               <h2 className="text-2xl font-semibold">Welcome to HexLock</h2>
                <button
                   onClick={toggleTheme}
                   className={`
@@ -74,7 +47,7 @@ const LoginScreen = () => {
                </button>
             </div>
             <div className="text-sm text-gray-400 mb-6">
-               Sign in to access your account
+               Sign in to access your secure password manager
             </div>
             <div className="flex justify-center mb-6">
                <div className={`
@@ -91,7 +64,7 @@ const LoginScreen = () => {
                </div>
             </div>
             <button
-               onClick={handleLogin}
+               onClick={onLogin}
                className={`
             w-full py-3 rounded-lg transition-colors duration-300
             ${darkMode
@@ -109,4 +82,4 @@ const LoginScreen = () => {
    );
 };
 
-export default LoginScreen;
+export default Auth;

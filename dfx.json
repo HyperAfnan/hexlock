@@ -1,6 +1,14 @@
 {
   "canisters": {
+    "password_manager_backend": {
+      "candid": "src/password_manager_backend/password_manager_backend.did",
+      "package": "spoempe_backend",
+      "type": "rust"
+    },
     "password_manager_frontend": {
+      "dependencies": [
+        "spoempe_backend"
+      ],
       "source": [
         "src/password_manager_frontend/dist"
       ],

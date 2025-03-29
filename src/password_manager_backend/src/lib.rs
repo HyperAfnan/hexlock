@@ -38,12 +38,11 @@ macro_rules! set_credentials {
 
 #[macro_export]
 macro_rules! get_credentials {
-    ($manager:ident, $principal_id:expr, $site:expr) => {
-        {
-            $manager.entries.iter()
-                .find(|&entry| entry.site == $site && entry.principal_id == $principal_id)
-                .cloned()
-        }
+    ($manager:ident, $principal_id:expr) => {
+        $manager.entries.iter()
+            .filter(|entry| entry.principal_id == $principal_id)
+            .cloned()
+            .collect::<Vec<_>>()
     };
 }
 
@@ -54,7 +53,40 @@ fn add_entry(principal_id: Principal, site: String, username: String, password: 
 }
 
 #[query]
+fn get_entries(principal_id: Principal) -> Vec<PasswordEntry> {
+    let manager = PASSWORD_MANAGER.lock().unwrap();
+    get_credentials!(manager, principal_id)
+}
+
+#[query]
 fn get_entry(principal_id: Principal, site: String) -> Option<PasswordEntry> {
     let manager = PASSWORD_MANAGER.lock().unwrap();
-    get_credentials!(manager, principal_id, site)
+    manager.entries.iter()
+        .find(|&entry| entry.principal_id == principal_id && entry.site == site)
+        .cloned()
+}
+
+#[update]
+fn edit_entry(principal_id: Principal, site: String, new_username: String, new_password: String) -> bool {
+    let mut manager = PASSWORD_MANAGER.lock().unwrap();
+    if let Some(entry) = manager.entries.iter_mut()
+        .find(|entry| entry.principal_id == principal_id && entry.site == site) {
+        entry.username = new_username;
+        entry.password = new_password;
+        true
+    } else {
+        false
+    }
+}
+
+#[update]
+fn delete_entry(principal_id: Principal, site: String) -> bool {
+    let mut manager = PASSWORD_MANAGER.lock().unwrap();
+    let initial_length = manager.entries.len();
+    
+    // Remove entries matching both principal_id and site
+    manager.entries.retain(|entry| !(entry.principal_id == principal_id && entry.site == site));
+    
+    // Return true if an entry was removed, false otherwise
+    manager.entries.len() < initial_length
 }

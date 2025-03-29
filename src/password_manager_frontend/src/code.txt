@@ -1,7 +1,0 @@
-    {/* <Router> */}
-    {/*   <Routes> */}
-    {/*     <Route path="/dashboard" element={<Dashboard />} /> */}
-    {/*     <Route path="/landing" element={<Landing />} /> */}
-    {/*     <Route path="/" element={<Navigate to="/landing" replace />} /> */}
-    {/*   </Routes> */}
-    {/* </Router> */}

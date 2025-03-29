@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react"
 import {
   Shield,
   Key,
@@ -9,148 +9,139 @@ import {
   EyeOff,
   User,
   RefreshCw
-} from 'lucide-react';
-import { AuthClient } from "@dfinity/auth-client";
+} from "lucide-react"
+import { AuthClient } from "@dfinity/auth-client"
 
 // Add this constant for consistency with landing.tsx
 const LOCAL_STORAGE_KEYS = {
-  PRINCIPAL_ID: 'hexlock_principal_id',
-  AUTH_CLIENT_STORAGE: 'hexlock_auth_client_storage'
-};
-
-interface Password {
-  id: string;
-  title: string;
-  username: string;
-  password: string;
-  url: string;
-  lastModified: string;
-}
-
-interface NewPassword {
-  username: string;
-  password: string;
-  url: string;
+  PRINCIPAL_ID: "hexlock_principal_id",
+  AUTH_CLIENT_STORAGE: "hexlock_auth_client_storage"
 }
 
 function Dashboard() {
-  const [showPassword, setShowPassword] = useState<Record<string, boolean>>({});
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newPassword, setNewPassword] = useState<NewPassword>({
-    username: '',
-    password: '',
-    url: '',
-  });
-  const [principalId, setPrincipalId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [showPassword, setShowPassword] = useState({})
+  const [searchTerm, setSearchTerm] = useState("")
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [newPassword, setNewPassword] = useState({
+    username: "",
+    password: "",
+    url: ""
+  })
+  const [principalId, setPrincipalId] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   // Authentication check on component mount
   useEffect(() => {
     const checkAuthentication = async () => {
       try {
-        setIsLoading(true);
-        const authClient = await AuthClient.create();
-        const isAuthenticated = await authClient.isAuthenticated();
+        setIsLoading(true)
+        const authClient = await AuthClient.create()
+        const isAuthenticated = await authClient.isAuthenticated()
 
         if (!isAuthenticated) {
           // Check if there's a cached principal ID
-          const cachedPrincipalId = localStorage.getItem(LOCAL_STORAGE_KEYS.PRINCIPAL_ID);
-          
+          const cachedPrincipalId = localStorage.getItem(
+            LOCAL_STORAGE_KEYS.PRINCIPAL_ID
+          )
+
           if (!cachedPrincipalId) {
             // No authentication and no cached ID - redirect to landing page
-            console.log("User is not authenticated. Redirecting to landing page.");
-            window.location.href = "/";
-            return;
+            console.log(
+              "User is not authenticated. Redirecting to landing page."
+            )
+            window.location.href = "/"
+            return
           }
-          
+
           // Even with a cached ID, try to verify if it's valid
           try {
             // If we can't authenticate with the cached ID, redirect to landing
-            console.log("Cached ID found but session expired. Redirecting to landing page.");
-            window.location.href = "/";
-            return;
+            console.log(
+              "Cached ID found but session expired. Redirecting to landing page."
+            )
+            window.location.href = "/"
+            return
           } catch (error) {
-            console.error("Error validating cached principal ID:", error);
+            console.error("Error validating cached principal ID:", error)
             // Clear invalid cached ID
-            localStorage.removeItem(LOCAL_STORAGE_KEYS.PRINCIPAL_ID);
-            window.location.href = "/";
-            return;
+            localStorage.removeItem(LOCAL_STORAGE_KEYS.PRINCIPAL_ID)
+            window.location.href = "/"
+            return
           }
         }
 
         // User is authenticated - get and store principal ID
-        const identity = authClient.getIdentity();
-        const principal = identity.getPrincipal();
-        const principalIdString = principal.toString();
-        
-        setPrincipalId(principalIdString);
-        localStorage.setItem(LOCAL_STORAGE_KEYS.PRINCIPAL_ID, principalIdString);
-        
-        console.log("User authenticated with principal ID:", principalIdString);
+        const identity = authClient.getIdentity()
+        const principal = identity.getPrincipal()
+        const principalIdString = principal.toString()
+
+        setPrincipalId(principalIdString)
+        localStorage.setItem(LOCAL_STORAGE_KEYS.PRINCIPAL_ID, principalIdString)
+
+        console.log("User authenticated with principal ID:", principalIdString)
       } catch (error) {
-        console.error("Error checking authentication in dashboard:", error);
-        window.location.href = "/";
+        console.error("Error checking authentication in dashboard:", error)
+        window.location.href = "/"
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
+    }
 
-    checkAuthentication();
-  }, []);
+    checkAuthentication()
+  }, [])
 
-  const passwords: Password[] = [
+  const passwords = [
     {
-      id: '1',
-      title: 'Gmail Account',
-      username: 'user@gmail.com',
-      password: '********',
-      url: 'gmail.com',
-      lastModified: '2024-03-15'
+      id: "1",
+      title: "Gmail Account",
+      username: "user@gmail.com",
+      password: "********",
+      url: "gmail.com",
+      lastModified: "2024-03-15"
     },
     {
-      id: '2',
-      title: 'GitHub',
-      username: 'devuser',
-      password: '********',
-      url: 'github.com',
-      lastModified: '2024-03-14'
+      id: "2",
+      title: "GitHub",
+      username: "devuser",
+      password: "********",
+      url: "github.com",
+      lastModified: "2024-03-14"
     }
-  ];
+  ]
 
-  const togglePasswordVisibility = (id: string) => {
+  const togglePasswordVisibility = id => {
     setShowPassword(prev => ({
       ...prev,
       [id]: !prev[id]
-    }));
-  };
+    }))
+  }
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
+  const copyToClipboard = text => {
+    navigator.clipboard.writeText(text)
     // In a real app, add a toast notification here
-  };
+  }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = e => {
+    e.preventDefault()
     // In a real app, this would save to the blockchain
-    console.log('New password:', newPassword);
-    setShowAddForm(false);
+    console.log("New password:", newPassword)
+    setShowAddForm(false)
     setNewPassword({
-      username: '',
-      password: '',
-      url: '',
-    });
-  };
+      username: "",
+      password: "",
+      url: ""
+    })
+  }
 
   const generateRandomPassword = () => {
     // const length = 32; // 32 characters = 16 bytes in hex
-    const array = new Uint8Array(16);
-    crypto.getRandomValues(array);
+    const array = new Uint8Array(16)
+    crypto.getRandomValues(array)
     const randomHex = Array.from(array)
-      .map(b => b.toString(16).padStart(2, '0'))
-      .join('');
-    setNewPassword({ ...newPassword, password: randomHex });
-  };
+      .map(b => b.toString(16).padStart(2, "0"))
+      .join("")
+    setNewPassword({ ...newPassword, password: randomHex })
+  }
 
   // Show loading state while checking authentication
   if (isLoading) {
@@ -161,7 +152,7 @@ function Dashboard() {
           <p className="mt-4">Loading your secure vault...</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -181,17 +172,17 @@ function Dashboard() {
             <div className="absolute right-0 mt-2 w-64 bg-gray-800 rounded-lg shadow-lg p-4 hidden group-hover:block border border-gray-700">
               <p className="text-sm text-gray-400">Principal ID:</p>
               <p className="text-sm font-mono overflow-hidden text-ellipsis">
-                {principalId || 'Not authenticated'}
+                {principalId || "Not authenticated"}
               </p>
-              <button 
+              <button
                 onClick={async () => {
                   try {
-                    const authClient = await AuthClient.create();
-                    await authClient.logout();
-                    localStorage.removeItem(LOCAL_STORAGE_KEYS.PRINCIPAL_ID);
-                    window.location.href = "/";
+                    const authClient = await AuthClient.create()
+                    await authClient.logout()
+                    localStorage.removeItem(LOCAL_STORAGE_KEYS.PRINCIPAL_ID)
+                    window.location.href = "/"
                   } catch (error) {
-                    console.error("Logout error:", error);
+                    console.error("Logout error:", error)
                   }
                 }}
                 className="mt-4 w-full text-sm bg-red-600 hover:bg-red-700 px-4 py-2 rounded"
@@ -215,10 +206,10 @@ function Dashboard() {
               placeholder="Search passwords..."
               className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-emerald-500"
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={e => setSearchTerm(e.target.value)}
             />
           </div>
-          <button 
+          <button
             className="flex items-center space-x-2 bg-emerald-500 hover:bg-emerald-600 px-4 py-2 rounded-lg ml-4"
             onClick={() => setShowAddForm(true)}
           >
@@ -235,33 +226,51 @@ function Dashboard() {
               <form onSubmit={handleSubmit}>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">URL</label>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">
+                      URL
+                    </label>
                     <input
                       type="text"
                       className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-emerald-500"
                       value={newPassword.url}
-                      onChange={(e) => setNewPassword({...newPassword, url: e.target.value})}
+                      onChange={e =>
+                        setNewPassword({ ...newPassword, url: e.target.value })
+                      }
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">Username</label>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">
+                      Username
+                    </label>
                     <input
                       type="text"
                       className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-emerald-500"
                       value={newPassword.username}
-                      onChange={(e) => setNewPassword({...newPassword, username: e.target.value})}
+                      onChange={e =>
+                        setNewPassword({
+                          ...newPassword,
+                          username: e.target.value
+                        })
+                      }
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1">Password</label>
+                    <label className="block text-sm font-medium text-gray-400 mb-1">
+                      Password
+                    </label>
                     <div className="flex space-x-2">
                       <input
                         type="text"
                         className="flex-1 px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-emerald-500"
                         value={newPassword.password}
-                        onChange={(e) => setNewPassword({...newPassword, password: e.target.value})}
+                        onChange={e =>
+                          setNewPassword({
+                            ...newPassword,
+                            password: e.target.value
+                          })
+                        }
                         required
                       />
                       <button
@@ -297,7 +306,7 @@ function Dashboard() {
 
         {/* Password List */}
         <div className="bg-gray-800 rounded-xl border border-gray-700">
-          {passwords.map((item) => (
+          {passwords.map(item => (
             <div
               key={item.id}
               className="p-4 border-b border-gray-700 last:border-0 hover:bg-gray-750"
@@ -345,7 +354,7 @@ function Dashboard() {
                 </div>
                 <div className="text-sm">
                   <span className="text-gray-400">Password: </span>
-                  {showPassword[item.id] ? item.password : '••••••••'}
+                  {showPassword[item.id] ? item.password : "••••••••"}
                 </div>
               </div>
               <div className="mt-2 text-xs text-gray-500">
@@ -356,7 +365,7 @@ function Dashboard() {
         </div>
       </main>
     </div>
-  );
+  )
 }
 
-export default Dashboard;
+export default Dashboard

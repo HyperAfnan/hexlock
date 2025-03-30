@@ -11,7 +11,7 @@ import {
   RefreshCw
 } from "lucide-react"
 import { AuthClient } from "@dfinity/auth-client"
-import { storeCredentials, getCredentials } from "./query"
+import { storeCredentials, getCredentials, deleteCredentials } from "./query"
 
 function Dashboard() {
   const [showPassword, setShowPassword] = useState({})

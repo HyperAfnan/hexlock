@@ -8,7 +8,8 @@ import {
   Eye,
   EyeOff,
   User,
-  RefreshCw
+  RefreshCw,
+  Trash2
 } from "lucide-react"
 import { AuthClient } from "@dfinity/auth-client"
 import { storeCredentials, getCredentials, deleteCredentials } from "./query"
@@ -149,6 +150,29 @@ function Dashboard() {
       .map(b => b.toString(16).padStart(2, "0"))
       .join("")
     setNewPassword({ ...newPassword, password: randomHex })
+  }
+
+  const handleDelete = async (site) => {
+    if (!principalId) {
+      console.error("Principal ID is not set. Cannot delete credentials.")
+      return
+    }
+
+    try {
+      if (!confirm("Are you sure you want to delete this password entry?")) {
+        return
+      }
+
+      await deleteCredentials(principalId, site)
+      console.log("Credentials deleted successfully!")
+
+      const updatedCredentials = await getCredentials(principalId)
+      if (updatedCredentials) {
+        setPasswords(updatedCredentials)
+      }
+    } catch (error) {
+      console.error("Error deleting credentials:", error)
+    }
   }
 
   if (isLoading) {
@@ -335,6 +359,13 @@ function Dashboard() {
                     ) : (
                       <Eye className="w-4 h-4" />
                     )}
+                  </button>
+                  <button
+                    onClick={() => handleDelete(item.site)}
+                    className="p-2 hover:bg-gray-700 rounded-lg"
+                    title="Delete password"
+                  >
+                    <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>

@@ -31,6 +31,17 @@ function Dashboard() {
     item.username.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
+  const handleLogout = async () => {
+    try {
+      const authClient = await AuthClient.create()
+      await authClient.logout()
+      setPrincipalId(null)
+      window.location.href = "/"
+    } catch (error) {
+      console.error("Logout error:", error)
+    }
+  }
+
   useEffect(() => {
     const checkAuthentication = async () => {
       try {
@@ -39,20 +50,15 @@ function Dashboard() {
         const isAuthenticated = await authClient.isAuthenticated()
 
         if (!isAuthenticated) {
-          // localStorage.removeItem(LOCAL_STORAGE_KEYS.PRINCIPAL_ID)
           window.location.href = "/"
           return
         }
 
-        // Successfully authenticated
         const identity = authClient.getIdentity()
         const principal = identity.getPrincipal()
         const principalIdString = principal.toString()
 
         setPrincipalId(principalIdString)
-        
-        // Use sessionStorage instead of localStorage for better security
-        // sessionStorage.setItem(LOCAL_STORAGE_KEYS.PRINCIPAL_ID, principalIdString)
 
         console.log("User authenticated with principal ID:", principalIdString)
       } catch (error) {
@@ -65,17 +71,15 @@ function Dashboard() {
     checkAuthentication()
   }, [])
 
-  // Fetch credentials on component mount
   useEffect(() => {
     const fetchCredentials = async () => {
       if (principalId) {
         try {
-          const credentials = await getCredentials(principalId )
+          const credentials = await getCredentials(principalId)
           if (credentials) {
             console.log("Fetched credentials:", credentials)
             setPasswords(credentials)
             console.log(passwords)
-            
           }
         } catch (error) {
           console.error("Error fetching credentials:", error)
@@ -98,11 +102,11 @@ function Dashboard() {
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
 
     if (!principalId) {
-      console.error("Principal ID is not set. Cannot save credentials.");
-      return;
+      console.error("Principal ID is not set. Cannot save credentials.")
+      return
     }
 
     try {
@@ -111,35 +115,32 @@ function Dashboard() {
         site: newPassword.site,
         username: newPassword.username,
         password: newPassword.password,
-      });
+      })
 
-      // Call storeCredentials to save the credentials
       await storeCredentials(
         principalId,
         newPassword.site,
         newPassword.username,
         newPassword.password
-      );
+      )
 
-      console.log("Credentials saved successfully!");
+      console.log("Credentials saved successfully!")
 
-      // Close the add form and reset the input fields
-      setShowAddForm(false);
+      setShowAddForm(false)
       setNewPassword({
         username: "",
         password: "",
         site: "",
-      });
+      })
 
-      // Refresh the passwords list
-      const updatedCredentials = await getCredentials(principalId);
+      const updatedCredentials = await getCredentials(principalId)
       if (updatedCredentials) {
-        setPasswords(updatedCredentials);
+        setPasswords(updatedCredentials)
       }
     } catch (error) {
-      console.error("Error saving credentials:", error);
+      console.error("Error saving credentials:", error)
     }
-  };
+  }
 
   const generateRandomPassword = () => {
     const array = new Uint8Array(16)
@@ -179,6 +180,12 @@ function Dashboard() {
               <p className="text-sm font-mono overflow-hidden text-ellipsis">
                 {principalId || "Not authenticated"}
               </p>
+              <button
+                onClick={handleLogout}
+                className="mt-2 px-4 py-2 bg-red-500 hover:bg-red-600 rounded-lg text-sm"
+              >
+                Logout
+              </button>
             </div>
           </div>
         </div>

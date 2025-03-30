@@ -13,11 +13,6 @@ import {
 import { Link, Routes, Route } from "react-router-dom"
 import { AuthClient } from "@dfinity/auth-client"
 
-const LOCAL_STORAGE_KEYS = {
-  PRINCIPAL_ID: "hexlock_principal_id",
-  AUTH_CLIENT_STORAGE: "hexlock_auth_client_storage"
-}
-
 const HexLockLogo = ({ className = "h-8 w-8" }) => (
   <svg
     className={`${className} animate-glow`}
@@ -33,99 +28,20 @@ const HexLockLogo = ({ className = "h-8 w-8" }) => (
 )
 
 const Navbar = ({ isDarkMode, toggleDarkMode }) => {
-  const [isScrolled, setIsScrolled] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [principalId, setPrincipalId] = useState(null)
 
-  useEffect(() => {
-    const checkAuthentication = async () => {
-      try {
-        const cachedPrincipalId = localStorage.getItem(
-          LOCAL_STORAGE_KEYS.PRINCIPAL_ID
-        )
-        const authClient = await AuthClient.create()
-        const isLoggedIn = await authClient.isAuthenticated()
-
-        if (isLoggedIn) {
-          const identity = authClient.getIdentity()
-          const principalId = identity.getPrincipal().toString()
-
-          localStorage.setItem(LOCAL_STORAGE_KEYS.PRINCIPAL_ID, principalId)
-
-          setIsAuthenticated(true)
-          setPrincipalId(principalId)
-          console.log("User is authenticated with principal ID:", principalId)
-
-          // If we're not already on the dashboard, redirect there
-          if (!window.location.pathname.includes("/dashboard")) {
-            window.location.href = "/dashboard"
-          }
-        } else if (cachedPrincipalId) {
-          console.log(
-            "Found cached principal ID, but user is not authenticated"
-          )
-          // Try to use the cached principal ID to authenticate
-          try {
-            // You may want to implement additional verification here
-            // For now, we'll attempt to redirect to dashboard if there's a cached ID
-            // This approach assumes the authentication service will handle validation
-            window.location.href = "/dashboard"
-          } catch (error) {
-            console.error(
-              "Error authenticating with cached principal ID:",
-              error
-            )
-            // If authentication fails, clear the cached ID
-            localStorage.removeItem(LOCAL_STORAGE_KEYS.PRINCIPAL_ID)
-          }
-        }
-      } catch (error) {
-        console.error("Error checking authentication:", error)
-      }
-    }
-
-    checkAuthentication()
-  }, [])
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20)
-    }
-
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
-
   const handleAuthentication = async () => {
     try {
-      // const cachedPrincipalId = localStorage.getItem(LOCAL_STORAGE_KEYS.PRINCIPAL_ID);
-      const authClient = await AuthClient.create({
-        idleOptions: {
-          disableIdle: true,
-          disableDefaultIdleCallback: true
-        }
-      })
-
-      if (await authClient.isAuthenticated()) {
-        const identity = authClient.getIdentity()
-        const principal = identity.getPrincipal()
-        setPrincipalId(principal.toString())
-        window.location.href = "/dashboard"
-        return
-      }
-
+      const authClient = await AuthClient.create()
       await authClient.login({
         identityProvider: "https://identity.ic0.app/#authorize",
         maxTimeToLive: BigInt(7 * 24 * 60 * 60 * 1000 * 1000 * 1000),
         onSuccess: () => {
           const identity = authClient.getIdentity()
           const principal = identity.getPrincipal()
-          const principalId = principal.toString()
-
-          localStorage.setItem(LOCAL_STORAGE_KEYS.PRINCIPAL_ID, principalId)
-          setPrincipalId(principalId)
+          setPrincipalId(principal.toString())
           setIsAuthenticated(true)
-
           window.location.href = "/dashboard"
         }
       })
@@ -138,12 +54,8 @@ const Navbar = ({ isDarkMode, toggleDarkMode }) => {
     try {
       const authClient = await AuthClient.create()
       await authClient.logout()
-
-      localStorage.removeItem(LOCAL_STORAGE_KEYS.PRINCIPAL_ID)
-
-      setIsAuthenticated(false)
       setPrincipalId(null)
-
+      setIsAuthenticated(false)
       window.location.href = "/"
     } catch (error) {
       console.error("Logout error:", error)
@@ -153,11 +65,7 @@ const Navbar = ({ isDarkMode, toggleDarkMode }) => {
   return (
     <nav
       className={`fixed w-full z-50 transition-all duration-300 ${
-        isScrolled
-          ? `${
-              isDarkMode ? "bg-[#1a1f2e]/90" : "bg-white/90"
-            } backdrop-blur-md shadow-lg`
-          : `${isDarkMode ? "bg-[#1a1f2e]" : "bg-white"}`
+        isDarkMode ? "bg-[#1a1f2e]" : "bg-white"
       }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -411,7 +319,7 @@ const LandingContent = ({ isDarkMode }) => {
             </div>
             <div className="reveal">
               <img
-               src="/src/assets/image.jpg"
+                src="/src/assets/image.jpg"
                 alt="Security Dashboard"
                 className="rounded-lg shadow-xl transition-transform duration-300 hover:scale-105"
               />

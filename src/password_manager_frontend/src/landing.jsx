@@ -411,14 +411,9 @@ const LandingContent = ({ isDarkMode }) => {
             </div>
             <div className="reveal">
               <img
-                src="https://images.unsplash.com/photo-1563986768609-322da13575f3?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80"
+               src="/src/assets/image.jpg"
                 alt="Security Dashboard"
                 className="rounded-lg shadow-xl transition-transform duration-300 hover:scale-105"
-                onError={e => {
-                  const target = e.target
-                  target.src =
-                    "https://via.placeholder.com/800x600?text=Security+Dashboard"
-                }}
               />
             </div>
           </div>

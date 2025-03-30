@@ -61,7 +61,6 @@ function Dashboard() {
 
         setPrincipalId(principalIdString)
 
-        console.log("User authenticated with principal ID:", principalIdString)
       } catch (error) {
         console.error("Authentication error")
         window.location.href = "/"
@@ -78,9 +77,7 @@ function Dashboard() {
         try {
           const credentials = await getCredentials(principalId)
           if (credentials) {
-            console.log("Fetched credentials:", credentials)
             setPasswords(credentials)
-            console.log(passwords)
           }
         } catch (error) {
           console.error("Error fetching credentials:", error)
@@ -111,21 +108,12 @@ function Dashboard() {
     }
 
     try {
-      console.log("Saving credentials:", {
-        principalId,
-        site: newPassword.site,
-        username: newPassword.username,
-        password: newPassword.password,
-      })
-
       await storeCredentials(
         principalId,
         newPassword.site,
         newPassword.username,
         newPassword.password
       )
-
-      console.log("Credentials saved successfully!")
 
       setShowAddForm(false)
       setNewPassword({
@@ -154,7 +142,6 @@ function Dashboard() {
 
   const handleDelete = async (site) => {
     if (!principalId) {
-      console.error("Principal ID is not set. Cannot delete credentials.")
       return
     }
 
@@ -164,7 +151,6 @@ function Dashboard() {
       }
 
       await deleteCredentials(principalId, site)
-      console.log("Credentials deleted successfully!")
 
       const updatedCredentials = await getCredentials(principalId)
       if (updatedCredentials) {
